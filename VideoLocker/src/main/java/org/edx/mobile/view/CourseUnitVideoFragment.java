@@ -191,16 +191,14 @@ public class CourseUnitVideoFragment extends CourseUnitFragment
         if ( hasComponentCallback != null ){
             CourseComponent component = hasComponentCallback.getComponent();
             if (component != null && component.equals(unit)){
-                try {
-                    if (playerFragment != null) {
-                        playerFragment.setCallback(this);
-                        playerFragment.handleOnResume();
-                    }
-                } catch (Exception ex) {
-                    logger.error(ex);
-                }
+                setVideoPlayerState(true, this);
             }
         }
+    }
+
+    public void onPause(){
+        super.onPause();
+        setVideoPlayerState(false, null);
     }
 
     //we use user visible hint, not onResume() for video
@@ -213,43 +211,36 @@ public class CourseUnitVideoFragment extends CourseUnitFragment
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if ( ViewPagerDownloadManager.instance.inInitialPhase(unit) )
+        if (ViewPagerDownloadManager.instance.inInitialPhase(unit))
             return;
         if (isVisibleToUser) {
-            try {
-                if (playerFragment != null) {
-                    playerFragment.setCallback(this);
-                    playerFragment.handleOnResume();
-                }
-            } catch (Exception ex) {
-                logger.error(ex);
-            }
-        }else{
+            setVideoPlayerState(true, this);
+        } else {
             // fragment is no longer visible
-            try {
-                if (playerFragment != null) {
-                    playerFragment.setCallback(null);
-                    playerFragment.handleOnPause();
-                }
-            } catch (Exception ex) {
-                logger.error(ex);
-            }
+            setVideoPlayerState(false, null);
         }
     }
+
     @Override
     public void run() {
-        if ( this.isRemoving() || this.isDetached()){
+        if (this.isRemoving() || this.isDetached()) {
             ViewPagerDownloadManager.instance.done(this, false);
         } else {
-            try {
-                if (playerFragment != null) {
-                    playerFragment.setCallback(this);
-                    playerFragment.handleOnResume();
-                }
-                ViewPagerDownloadManager.instance.done(this, true);
-            } catch (Exception ex) {
-                logger.error(ex);
-            }
+            setVideoPlayerState(true, this);
+            ViewPagerDownloadManager.instance.done(this, true);
+        }
+    }
+
+    /**
+     * Sets the state of video player inside {@link PlayerFragment} to playing or paused
+     * @param play Boolean to set state to playing or paused
+     * @param callback  The callback to send events to
+     */
+    private void setVideoPlayerState(boolean play, IPlayerEventCallback callback) {
+        if (playerFragment != null) {
+            if (play) playerFragment.handleOnResume();
+            else playerFragment.handleOnPause();
+            playerFragment.setCallback(callback);
         }
     }
 

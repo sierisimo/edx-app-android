@@ -75,7 +75,7 @@ public class PlayerFragment extends RoboFragment implements IPlayerListener, Ser
 
     private enum VideoNotPlayMessageType {IS_CLEAR, IS_VIDEO_MESSAGE_DISPLAYED, IS_VIDEO_ONLY_ON_WEB, IS_NETWORK_MESSAGE_DISPLAYED, IS_SHOWN_WIFI_SETTINGS_MESSAGE}
 
-    private static final boolean IS_AUTOPLAY_ENABLED = false;
+    private static final boolean IS_AUTOPLAY_ENABLED = true;
 
     private static final int MSG_TYPE_TICK = 2014;
     private static final int DELAY_TIME_MS = 1000;
@@ -321,7 +321,7 @@ public class PlayerFragment extends RoboFragment implements IPlayerListener, Ser
     public void onStart() {
         super.onStart();
         logger.debug("Player fragment start");
-        
+
         stateSaved = false;
         try{
             Preview preview = (Preview) getView().findViewById(R.id.preview);
@@ -752,7 +752,8 @@ public class PlayerFragment extends RoboFragment implements IPlayerListener, Ser
         // mark prepared and allow orientation
         isPrepared = true;
 
-        if (getParentFragment() != null && !getParentFragment().getUserVisibleHint()) {
+        if (!isResumed() ||
+                (getParentFragment() != null && !getParentFragment().getUserVisibleHint())) {
             freezePlayer();
             return;
         }
