@@ -421,6 +421,22 @@ public abstract class BaseFragmentActivity extends RoboFragmentActivity
     }
 
     /**
+     * Hides the info message view if its visible with/without animation
+     * @param withAnimation If set, view hides with animation otherwise it hides instantly
+     * @return <code>true<code/> if the view was hidden successfully otherwise <code>false</code>
+     */
+    public boolean hideInfoMessage(boolean withAnimation) {
+        View messageView = findViewById(R.id.downloadMessage);
+        if (messageView == null) {
+            logger.warn("Message view not available, so couldn't hide flying message");
+            return false;
+        }
+        if (withAnimation) ViewAnimationUtil.hideMessageBar(messageView);
+        else messageView.setVisibility(View.GONE);
+        return true;
+    }
+
+    /**
      * Call this method to inform user about going  offline
      */
     public void showOfflineAccessMessage() {
