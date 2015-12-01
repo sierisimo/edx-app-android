@@ -86,6 +86,8 @@ public class PlayerFragment extends RoboFragment implements IPlayerListener, Ser
 
     protected IPlayer player;
     private boolean isPrepared = false;
+    // Decides if the video should remain paused when the fragment comes to foreground
+    private boolean isPaused = false;
     private boolean stateSaved = false;
     private boolean orientationLocked = false;
     private transient OrientationDetector orientationDetector;
@@ -364,13 +366,14 @@ public class PlayerFragment extends RoboFragment implements IPlayerListener, Ser
 
         // start playback after 300 milli seconds, so that it works on HTC One, Nexus5, S4, S5
         // some devices take little time to be ready
-        handler.postDelayed(unfreezeCallback, UNFREEZE_DELAY_MS);
+        if (isPrepared) handler.postDelayed(unfreezeCallback, UNFREEZE_DELAY_MS);
     }
 
     @Override
     public void onPause() {
         super.onPause();
         if ( !isInViewPager ) {
+            if (player != null) isPaused = player.isPaused();
             handleOnPause();
         }
     }
@@ -765,7 +768,11 @@ public class PlayerFragment extends RoboFragment implements IPlayerListener, Ser
         clearAllErrors();
         initializeClosedCaptioning();
         allowSensorOrientation();
-        if (IS_AUTOPLAY_ENABLED) handler.postDelayed(unfreezeCallback, UNFREEZE_DELAY_MS);
+        if (IS_AUTOPLAY_ENABLED && !isPaused) {
+            handler.postDelayed(unfreezeCallback, UNFREEZE_DELAY_MS);
+        } else {
+            updateController("player paused");
+        }
     }
 
     @Override
@@ -978,11 +985,14 @@ public class PlayerFragment extends RoboFragment implements IPlayerListener, Ser
                         updateController("player unfreezed");
                     }
 
-                    if (IS_AUTOPLAY_ENABLED && isPrepared) {
+                    if (IS_AUTOPLAY_ENABLED && isPrepared && !isPaused) {
                         player.start();
+                    } else {
+                        updateController("player paused");
                     }
 
                     if (pauseDueToDialog) {
+                        pauseDueToDialog = false;
                         pauseDueToDialog = false;
                         player.pause();
                     }
@@ -1855,5 +1865,12 @@ public class PlayerFragment extends RoboFragment implements IPlayerListener, Ser
         boolean isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
         player.setFullScreen(isLandscape);
         updateController("orientation change");
+    }
+
+    /**
+     * Checks and sets the {@link #isPaused} boolean to paused state of video player
+     */
+    public void checkIsVideoPlayerPaused() {
+        if (player != null) isPaused = player.isPaused();
     }
 }

@@ -233,13 +233,18 @@ public class CourseUnitVideoFragment extends CourseUnitFragment
 
     /**
      * Sets the state of video player inside {@link PlayerFragment} to playing or paused
-     * @param play Boolean to set state to playing or paused
-     * @param callback  The callback to send events to
+     *
+     * @param playing  Boolean to set state to playing or paused
+     * @param callback The callback to send events to
      */
-    private void setVideoPlayerState(boolean play, IPlayerEventCallback callback) {
+    private void setVideoPlayerState(boolean playing, IPlayerEventCallback callback) {
         if (playerFragment != null) {
-            if (play) playerFragment.handleOnResume();
-            else playerFragment.handleOnPause();
+            if (playing) {
+                playerFragment.handleOnResume();
+            } else {
+                playerFragment.checkIsVideoPlayerPaused();
+                playerFragment.handleOnPause();
+            }
             playerFragment.setCallback(callback);
         }
     }
